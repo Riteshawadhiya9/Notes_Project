@@ -93,55 +93,16 @@
 //   );
 // };
 
-// export default App;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// export default App;// youtube wala
 
 
 
 
 import React, { useState, useEffect, useRef } from "react";
+import MobileTabs from "./Components/MobileTabs";
+import NoteForm from "./Components/NoteForm";
+import NotesList from "./Components/NotesList";
+import Toast from "./Components/Toast";
 
 const App = () => {
   const [title, setTitle] = useState("");
@@ -241,35 +202,35 @@ const App = () => {
     showToast("All notes cleared");
   };
 
-  const exportNotes = () => {
-    const data = JSON.stringify(notes, null, 2);
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `notes-${new Date().toISOString()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast("Export started");
-  };
+  // const exportNotes = () => {
+  //   const data = JSON.stringify(notes, null, 2);
+  //   const blob = new Blob([data], { type: "application/json" });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement("a");
+  //   a.href = url;
+  //   a.download = `notes-${new Date().toISOString()}.json`;
+  //   a.click();
+  //   URL.revokeObjectURL(url);
+  //   showToast("Export started");
+  // };
 
-  const importNotes = (file) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const imported = JSON.parse(e.target.result);
-        if (!Array.isArray(imported)) throw new Error("Invalid file");
-        const maxId = notes.reduce((m, n) => Math.max(m, n.id || 0), 0);
-        const fixed = imported.map((n, i) => ({ ...n, id: (n.id || maxId) + 1 + i }));
-        setNotes((prev) => [...fixed, ...prev]);
-        showToast("Import successful");
-      } catch {
-        showToast("Import failed: invalid file");
-      }
-    };
-    reader.readAsText(file);
-  };
+  // const importNotes = (file) => {
+  //   if (!file) return;
+  //   const reader = new FileReader();
+  //   reader.onload = (e) => {
+  //     try {
+  //       const imported = JSON.parse(e.target.result);
+  //       if (!Array.isArray(imported)) throw new Error("Invalid file");
+  //       const maxId = notes.reduce((m, n) => Math.max(m, n.id || 0), 0);
+  //       const fixed = imported.map((n, i) => ({ ...n, id: (n.id || maxId) + 1 + i }));
+  //       setNotes((prev) => [...fixed, ...prev]);
+  //       showToast("Import successful");
+  //     } catch {
+  //       showToast("Import failed: invalid file");
+  //     }
+  //   };
+  //   reader.readAsText(file);
+  // };
 
   const filteredNotes = notes
     .filter((n) =>
@@ -283,208 +244,50 @@ const App = () => {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-black text-white">
-      
-      {/* MOBILE TABS */}
-      <div className="lg:hidden flex gap-2 p-4 bg-gray-950 border-b border-gray-700">
-        <button
-          onClick={() => setShowNotesList(false)}
-          className={`flex-1 py-2 px-4 rounded font-semibold transition ${
-            !showNotesList ? "bg-indigo-600" : "bg-gray-800"
-          }`}
-        >
-          ✏️ Editor
-        </button>
-        <button
-          onClick={() => setShowNotesList(true)}
-          className={`flex-1 py-2 px-4 rounded font-semibold transition ${
-            showNotesList ? "bg-indigo-600" : "bg-gray-800"
-          }`}
-        >
-          📋 Notes ({notes.length})
-        </button>
-      </div>
+      <MobileTabs
+        showNotesList={showNotesList}
+        setShowNotesList={setShowNotesList}
+        notesCount={notes.length}
+      />
 
       <div className="flex flex-col lg:flex-row w-full min-h-screen lg:overflow-hidden">
-        
         {/* FORM - LEFT SIDE */}
-        <div className={`w-full lg:w-1/2 h-screen lg:overflow-y-auto border-b lg:border-b-0 lg:border-r border-gray-700 ${showNotesList ? "hidden lg:flex" : "flex"} flex-col`}>
-          <form
+        <div
+          className={`w-full lg:w-1/2 h-screen lg:overflow-y-auto border-b lg:border-b-0 lg:border-r border-gray-700 ${
+            showNotesList ? "hidden lg:flex" : "flex"
+          } flex-col`}
+        >
+          <NoteForm
             onSubmit={handleSubmit}
-            className="bg-gray-900/60 backdrop-blur-sm p-4 md:p-8 flex flex-col gap-4 h-full"
-          >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <h1 className="text-2xl md:text-3xl font-extrabold">📝 Notes</h1>
-              <div className="flex gap-2 items-center flex-wrap">
-                <button
-                  type="button"
-                  onClick={clearAll}
-                  className="text-xs px-2 md:px-3 py-1 bg-red-600/80 hover:bg-red-500 rounded transition"
-                >
-                  Clear
-                </button>
-
-                <button
-                  type="button"
-                  onClick={exportNotes}
-                  className="text-xs px-2 md:px-3 py-1 bg-indigo-600 hover:bg-indigo-500 rounded transition"
-                >
-                  Export
-                </button>
-
-                <label className="text-xs px-2 md:px-3 py-1 bg-green-600 hover:bg-green-500 rounded transition cursor-pointer">
-                  Import
-                  <input
-                    type="file"
-                    accept="application/json"
-                    onChange={(e) => importNotes(e.target.files?.[0])}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            </div>
-
-            <input
-              ref={titleRef}
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="px-3 md:px-4 py-2 md:py-3 rounded bg-gray-800 border border-gray-700 focus:border-indigo-400 outline-none text-base md:text-lg"
-            />
-
-            <div className="relative flex-1 min-h-40">
-              <textarea
-                ref={detailRef}
-                placeholder="Write details..."
-                value={detail}
-                onChange={(e) => {
-                  if (e.target.value.length <= CHAR_LIMIT) setDetail(e.target.value);
-                }}
-                className="px-3 md:px-4 py-2 md:py-3 rounded bg-gray-800 border border-gray-700 focus:border-indigo-400 outline-none resize-none w-full h-full"
-              />
-              <div className="text-[10px] md:text-[11px] text-gray-400 absolute right-2 md:right-3 bottom-2">
-                {detail.length}/{CHAR_LIMIT}
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row items-center justify-between gap-3 flex-wrap">
-              <button
-                type="submit"
-                className="w-full md:w-auto bg-gradient-to-r from-indigo-500 to-purple-500 py-2 px-4 md:px-6 rounded font-semibold hover:opacity-95 active:scale-95 transition text-base md:text-lg"
-              >
-                {editId !== null ? "Save Changes" : "Add Note"}
-              </button>
-
-              {editId !== null && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditId(null);
-                    setTitle("");
-                    setDetail("");
-                    showToast("Edit cancelled");
-                  }}
-                  className="w-full md:w-auto text-xs px-3 py-2 bg-gray-800 border border-gray-700 rounded"
-                >
-                  Cancel Edit
-                </button>
-              )}
-
-              <div className="text-xs md:text-sm text-gray-300">
-                Total: {notes.length} • Pinned: {notes.filter((n) => n.pinned).length}
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-400">
-              Pro tip: Pin to keep at top. Use export/import to backup.
-            </p>
-          </form>
+            title={title}
+            setTitle={setTitle}
+            detail={detail}
+            setDetail={setDetail}
+            titleRef={titleRef}
+            detailRef={detailRef}
+            editId={editId}
+            setEditId={setEditId}
+            clearAll={clearAll}
+            showToast={showToast}
+            notes={notes}
+            CHAR_LIMIT={CHAR_LIMIT}
+          />
         </div>
 
         {/* LIST - RIGHT SIDE */}
-        <div className={`w-full lg:w-1/2 h-screen overflow-y-auto bg-gray-900/50 border-l border-gray-700 ${!showNotesList ? "hidden lg:flex" : "flex"} flex-col`}>
-          <div className="p-4 md:p-8 h-full flex flex-col">
-            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-3 mb-4">
-              <h2 className="text-2xl md:text-3xl font-bold">Your Notes</h2>
-              <input
-                type="text"
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full md:ml-auto md:w-48 px-3 py-2 rounded bg-gray-800 border border-gray-700 outline-none text-sm"
-              />
-            </div>
-
-            <div className="flex-1 overflow-auto py-2">
-              {filteredNotes.length === 0 ? (
-                <div className="text-center text-gray-400 mt-12 md:mt-20">
-                  <p className="text-lg md:text-xl">No notes found. Try adding one!</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 auto-rows-max">
-                  {filteredNotes.map((note) => (
-                    <div
-                      key={note.id}
-                      className={`p-4 md:p-5 rounded-xl shadow-md transform hover:scale-105 transition bg-gradient-to-br ${note.color} relative min-h-64 md:min-h-72 flex flex-col`}
-                    >
-                      <div className="flex-1 mb-3 md:mb-4">
-                        <h3 className="font-bold text-base md:text-lg text-gray-900 leading-tight line-clamp-2">
-                          {note.title}
-                        </h3>
-                        <p className="text-xs md:text-sm text-gray-800 mt-2 md:mt-3 break-words whitespace-pre-wrap max-h-32 md:max-h-40 overflow-auto">
-                          {note.detail || <span className="text-gray-700/70 italic">— no details —</span>}
-                        </p>
-                      </div>
-
-                      <div className="flex justify-between items-end w-full mb-3 md:mb-4">
-                        <button
-                          title={note.pinned ? "Unpin" : "Pin"}
-                          onClick={() => togglePin(note.id)}
-                          className={`px-2 py-1 rounded text-sm transition ${note.pinned ? "bg-yellow-500" : "bg-white/70 text-black hover:bg-white"} active:scale-95`}
-                        >
-                          {note.pinned ? "📌" : "📍"}
-                        </button>
-                        <div className="text-[10px] md:text-[11px] text-gray-700 font-medium">{note.time}</div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2 w-full">
-                        <button
-                          onClick={() => editNote(note)}
-                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-2 md:px-3 py-2 rounded font-medium text-xs md:text-sm active:scale-95 transition"
-                        >
-                          ✏️ Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard?.writeText(`${note.title}\n\n${note.detail}`);
-                            showToast("Copied!");
-                          }}
-                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-2 md:px-3 py-2 rounded font-medium text-xs md:text-sm active:scale-95 transition"
-                        >
-                          📋 Copy
-                        </button>
-                        <button
-                          onClick={() => deleteNote(note.id)}
-                          className="flex-1 bg-red-600 hover:bg-red-700 text-white px-2 md:px-3 py-2 rounded font-medium text-xs md:text-sm active:scale-95 transition"
-                        >
-                          🗑️ Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <NotesList
+          filteredNotes={filteredNotes}
+          search={search}
+          setSearch={setSearch}
+          onEdit={editNote}
+          onDelete={deleteNote}
+          onTogglePin={togglePin}
+          showToast={showToast}
+          showNotesList={showNotesList}
+        />
       </div>
 
-      {/* toast */}
-      {toast && (
-        <div className="fixed right-4 md:right-6 bottom-4 md:bottom-6 bg-black/80 text-white px-3 md:px-4 py-2 rounded shadow z-50 text-sm md:text-base">
-          {toast}
-        </div>
-      )}
+      <Toast toast={toast} />
     </div>
   );
 };
